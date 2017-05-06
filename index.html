@@ -5,15 +5,11 @@
     <body style="background-color:#97bfbb">
         <canvas id="canv" width="1440px" height="1080px" style="background-color:#ffffff;width:720px;height:540px;margin-top:30px;position:fixed;">fml</canvas>
         <canvas id="overlay" width="1440px" height="1080px" style="width:720px;height:540px;margin-top:30px;position:fixed;">fmlx2</canvas>
-        <script>
+        <div width="200px" height = "540px" style="margin-top:30px;left:750px;position:fixed;"><button onclick="resetScreen()">Reset</button></div>
+		<script>
             var canv = document.getElementById("canv");
             var c = canv.getContext("2d");
-            var r_1 = {"x": 1, "y": 0};
-            var r_2 = {"x": -0.5, "y": 0.866025};
-            var r_3 = {"x": -0.5, "y": -0.866025};
-            var r_c1 = [255,0,0];
-            var r_c2 = [0,150,0];
-            var r_c3 = [0,0,255];
+            
             
             var c_w = 1440;
             var c_h = 1080;
@@ -26,56 +22,7 @@
             var w_orig = w_w;
             var h_orig = w_h;
             
-            function newton(p)
-            {
-                return subtract(p, divide(subtract(multiply(p,multiply(p,p)),{"x":1,"y":0}),scalar(multiply(p,p),3)))
-            }
             
-            function multiply(p1, p2)
-            {
-                var temp = new Array();
-                temp.x = p1.x * p2.x - p1.y * p2.y;
-                temp.y = p1.x * p2.y + p1.y * p2.x;
-                return temp;
-            }
-        
-            function add(p1, p2)
-            {
-                var temp = new Array();
-                temp.x = p1.x + p2.x;
-                temp.y = p1.y + p2.y;
-                return temp;
-            }
-        
-            function subtract(p1, p2)
-            {
-                var temp = new Array();
-                temp.x = p1.x - p2.x;
-                temp.y = p1.y - p2.y;
-                return temp;
-            }
-        
-            function divide(p1, p2)
-            {
-                var temp = new Array();
-                temp.x = (p1.x * p2.x + p1.y * p2.y) / (p2.x * p2.x + p2.y * p2.y);
-                temp.y = (p1.y * p2.x - p1.x * p2.y) / (p2.x * p2.x + p2.y * p2.y);
-                return temp;
-            }
-            
-            function scalar(p, c)
-            {
-                var temp = new Array();
-                temp.x = c * p.x;
-                temp.y = c * p.y;
-                return temp;
-            }
-        
-            function distanceSqr(p1, p2)
-            {
-                return (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y);
-            }
-        
             var overlay = document.getElementById("overlay");
             var cOverlay = overlay.getContext("2d");
             cOverlay.lineWidth = 5;
@@ -154,7 +101,23 @@
             function refreshScreen()
             {
                 w = new Worker("GenFractal.js")
-                
+				var id = Math.floor(Math.random() * 0x10000)
+                mode = -1;
+				var imgData = (c.getImageData(0,0,c_w, c_h));
+				w.onmessage = function(d)
+				{
+					if (d.data.id == id)
+					{
+						//alert("done");
+						c.putImageData(d.data.data, 0, 0);
+					}
+					else
+					{
+						c.putImageData(d.data.data, 0, 0);
+					}
+				}
+				w.postMessage({id: id, data: [c_w, c_h, w_x, w_y, w_w, w_h, max_res, imgData]});
+
             }
         
         refreshScreen();
