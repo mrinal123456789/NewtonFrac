@@ -4,7 +4,6 @@
     </head>
     <body style="background-color:#97bfbb">
         <canvas id="canv" width="720px" height="540px" style="background-color:#ffffff;width:720px;height:540px;margin-top:30px;position:fixed;">fml</canvas>
-        <canvas id="overlay" width="720px" height="540px" style="width:720px;height:540px;margin-top:30px;position:fixed;">fmlx2</canvas>
         <div width="200px" height = "540px" style="margin-top:30px;left:750px;position:fixed;"><button onclick="resetScreen()">Reset</button></div>
 		<script>
             var canv = document.getElementById("canv");
@@ -21,11 +20,7 @@
             var w_h = 1.5;//Half the height
             var w_orig = w_w;
             var h_orig = w_h;
-            
-            
-            var overlay = document.getElementById("overlay");
-            var cOverlay = overlay.getContext("2d");
-            cOverlay.lineWidth = 5;
+        
             
             var mode = 0;
             var clickX = 0;
@@ -74,7 +69,7 @@
             overlay.onmousedown = mouseClick;
             overlay.onmousemove = mouseMove;
             overlay.onmouseup = mouseRelease;*/
-            overlay.onclick = function (e)
+            canv.onclick = function (e)
             {
 				if (mode == 0)
 				{
