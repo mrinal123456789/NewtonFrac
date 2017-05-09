@@ -12,7 +12,7 @@
             
             var c_w = 720;
             var c_h = 540;
-            var max_res = 8 + 4;
+            var max_res = 8 + 6;
             
             var w_x = 0.0;//Center X
             var w_y = 0.0;//Center Y
@@ -81,8 +81,8 @@
 					w_w *= scale;
 					w_h *= scale;
 					
-					max_res = Math.floor(8 * Math.pow(Math.max(w_orig / w_w, h_orig / w_h), 0.4))
-					refreshScreen() + 4;
+					max_res = Math.floor(8 * Math.pow(Math.max(w_orig / w_w, h_orig / w_h), 0.4)) + 6
+					refreshScreen();
 				}
             }
         
@@ -92,7 +92,7 @@
                 w_h = h_orig;
                 w_x = 0;
                 w_y = 0;
-                max_res = Math.floor(8 * Math.pow(Math.max(w_orig / w_w, h_orig / w_h), 0.4))
+                max_res = Math.floor(8 * Math.pow(Math.max(w_orig / w_w, h_orig / w_h), 0.4)) + 6
                 refreshScreen();
             }
         
