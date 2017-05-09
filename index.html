@@ -12,7 +12,7 @@
             
             var c_w = 720;
             var c_h = 540;
-            var max_res = 8;
+            var max_res = 8 + 4;
             
             var w_x = 0.0;//Center X
             var w_y = 0.0;//Center Y
@@ -82,7 +82,7 @@
 					w_h *= scale;
 					
 					max_res = Math.floor(8 * Math.pow(Math.max(w_orig / w_w, h_orig / w_h), 0.4))
-					refreshScreen();
+					refreshScreen() + 4;
 				}
             }
         
