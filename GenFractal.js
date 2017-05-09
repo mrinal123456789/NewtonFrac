@@ -92,7 +92,11 @@ function genFractal(c_w, c_h, w_x, w_y, w_w, w_h, max_res, imgData)
 					var d1 = distanceSqr(p0, r_1);
 					var d2 = distanceSqr(p0, r_2);
 					var d3 = distanceSqr(p0, r_3);
-					if (d1 < d2 && d1 < d3)
+					imgData.data[rPos] = 34;
+					imgData.data[rPos + 1] = 41;
+					imgData.data[rPos + 2] = 42;
+					imgData.data[rPos + 3] = 255;
+					/*if (d1 < d2 && d1 < d3)
 					{
 						imgData.data[rPos] = r_c1[0]
 						imgData.data[rPos + 1] = r_c1[1];
@@ -112,10 +116,10 @@ function genFractal(c_w, c_h, w_x, w_y, w_w, w_h, max_res, imgData)
 						imgData.data[rPos + 1] = r_c3[1];
 						imgData.data[rPos + 2] = r_c3[2];
 						imgData.data[rPos + 3] = 100 +  130 * (iteration - min_res) / (max_res - min_res);
-					}
+					}*/
 					found = true;
 				}
-				if (iteration > min_res)
+				else if (iteration > min_res)
 				{
 					var d1 = distanceSqr(p0, r_1);
 					if (Math.abs(d1) < 0.125)
