@@ -12,7 +12,7 @@
             
             var c_w = 720;
             var c_h = 540;
-            var max_res = 8 + 15;
+            var max_res = 30;
             
             var w_x = 0.0;//Center X
             var w_y = 0.0;//Center Y
@@ -25,50 +25,7 @@
             var mode = 0;
             var clickX = 0;
             var clickY = 0;
-            /*function mouseClick(e)
-            {
-                console.log(e.clientX + ", " + e.clientY)
-                if (mode == 0)
-                {
-                    mode++;
-                    clickX = e.clientX - 10;
-                    clickY = e.clientY - 40;
-                }
-            }
-        
-            function mouseMove(e)
-            {
-                if (mode == 1)
-                {
-                    cOverlay.clearRect(0,0,c_w,c_h);
-                    cOverlay.strokeRect(clickX * 2, clickY * 2, 2 * (e.clientX - 10 - clickX), 2 * (e.clientY - 40 - clickY));
-                }
-            }
-        
-            function mouseRelease(e)
-            {
-                if (mode == 1)
-                {
-                    cOverlay.clearRect(0,0,c_w,c_h)
-                    mode = 0;
-                    var px_w = 2 * (e.clientX - 10 - clickX);
-                    var px_h = 2 * (e.clientY - 40 - clickY);
-                    var px_x = 2 * clickX + px_w  / 2;
-                    var px_y = 2 * clickY + px_h / 2;
-                    w_x = w_x + (px_x - c_w / 2) / c_w * w_w;
-                    w_y = w_y + (px_y - c_h / 2) / c_h * w_h;
-                    w_w = Math.abs(px_w) / c_w * w_w;
-                    w_h = Math.abs(px_h) / c_h * w_h;
-                    //console.log(w_x + ", " + w_y + ", " + w_w + ", " + w_h)
-                    max_res = 10 * Math.pow(Math.max(2.0 / w_orig, 1.5 / h_orig), 2)
-                    refreshScreen();
-                }
-                
-            }
-        
-            overlay.onmousedown = mouseClick;
-            overlay.onmousemove = mouseMove;
-            overlay.onmouseup = mouseRelease;*/
+            
             canv.onclick = function (e)
             {
 				if (mode == 0)
@@ -81,7 +38,7 @@
 					w_w *= scale;
 					w_h *= scale;
 					
-					max_res = Math.floor(8 * Math.pow(Math.max(w_orig / w_w, h_orig / w_h), 0.4)) + 15
+					max_res = (-1) * Math.log(w_w) * 4 + 30;
 					refreshScreen();
 				}
             }
@@ -92,16 +49,19 @@
                 w_h = h_orig;
                 w_x = 0;
                 w_y = 0;
-                max_res = Math.floor(8 * Math.pow(Math.max(w_orig / w_w, h_orig / w_h), 0.4)) + 15
+                max_res = 30;
                 refreshScreen();
             }
         
             function refreshScreen()
             {
-                w = new Worker("GenFractal.js")
-				var id = Math.floor(Math.random() * 0x10000)
-                mode = -1;
-				var imgData = (c.getImageData(0,0,c_w, c_h));
+               			w = new Worker("GenFractal.js")
+				w2 = new Worker("GenFractal.js")
+				var id = 10;
+				var id2 = 20;
+           		   	mode = -1;
+				var imgData = (c.getImageData(0,0,c_w / 2, c_h));
+				var imgData2 = (c.getImageData(c_w / 2, -1, c_w / 2, c_h + 1));
 				w.onmessage = function(d)
 				{
 					if (d.data.id == id)
@@ -115,7 +75,22 @@
 						c.putImageData(d.data.data, 0, 0);
 					}
 				}
+				w2.onmessage = function(d)
+				{
+					if (d.data.id == id2)
+					{
+						//alert("done");
+						c.putImageData(d.data.data, c_w / 2, -1);
+						mode = 0;
+					}
+					else
+					{
+						c.putImageData(d.data.data, c_w / 2, -1);
+					}
+				}
+				
 				w.postMessage({id: id, data: [c_w, c_h, w_x, w_y, w_w, w_h, max_res, imgData]});
+				w2.postMessage({id: id2, data: [c_w, c_h, w_x, w_y, w_w, w_h, max_res, imgData2]});
 
             }
         
