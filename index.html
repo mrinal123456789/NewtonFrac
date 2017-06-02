@@ -3,8 +3,8 @@
         
     </head>
     <body style="background-color:#97bfbb">
-        <canvas id="canv" width="720px" height="540px" style="background-color:#ffffff;width:720px;height:540px;margin-top:30px;position:fixed;">fml</canvas>
-        <div width="200px" height = "540px" style="margin-top:30px;left:750px;position:fixed;"><button onclick="resetScreen()">Reset</button></div>
+        <canvas id="canv" width="720px" height="540px" style="background-color:#ffffff;width:720px;height:540px;margin-top:30.0px;position:fixed;">fml</canvas>
+        <div width="200px" height = "540px" style="margin-top:30.0px;left:750px;position:fixed;"><button onclick="resetScreen()">Reset</button></div>
 		<script>
             var canv = document.getElementById("canv");
             var c = canv.getContext("2d");
@@ -12,34 +12,42 @@
             
             var c_w = 720;
             var c_h = 540;
-            var max_res = 30;
+            var max_res = 30.0;
             
-            var w_x = 0.0;//Center X
+            var w_x = 0.001;//Center X
             var w_y = 0.0;//Center Y
-            var w_w = 2.0;//Half the width
-            var w_h = 1.5;//Half the height
+            var w_w = 2.0 * 0.8;//Half the width
+            var w_h = 1.5 * 0.8;//Half the height
             var w_orig = w_w;
             var h_orig = w_h;
         
             
+			var superMode = 0;
             var mode = 0;
             var clickX = 0;
             var clickY = 0;
             
             canv.onclick = function (e)
             {
-				if (mode == 0)
+				if (superMode == 0)
 				{
-					var scale = 1 / 2;
-					var clickX = e.clientX - 10;
-					var clickY = e.clientY - 40;
-					w_x = w_x - w_w + clickX / c_w * 2 * w_w;
-					w_y = w_y - w_h + clickY / c_h * 2 * w_h;
-					w_w *= scale;
-					w_h *= scale;
+					if (mode == 0)
+					{
+						var scale = 1 / 2;
+						var clickX = e.clientX - 10;
+						var clickY = e.clientY - 40;
+						w_x = w_x - w_w + clickX / c_w * 2 * w_w;
+						w_y = w_y - w_h + clickY / c_h * 2 * w_h;
+						w_w *= scale;
+						w_h *= scale;
+						
+						max_res = (-1) * Math.log(w_w) * 4 + 30.0;
+						refreshScreen();
+					}
+				}
+				else if (superMode == 1)
+				{
 					
-					max_res = (-1) * Math.log(w_w) * 4 + 30;
-					refreshScreen();
 				}
             }
         
@@ -49,13 +57,13 @@
                 w_h = h_orig;
                 w_x = 0;
                 w_y = 0;
-                max_res = 30;
+                max_res = 30.0;
                 refreshScreen();
             }
         
             function refreshScreen()
             {
-               			w = new Worker("GenFractal.js")
+               	w = new Worker("GenFractal.js")
 				w2 = new Worker("GenFractal.js")
 				var id = 10;
 				var id2 = 20;
@@ -91,7 +99,6 @@
 				
 				w.postMessage({id: id, data: [c_w, c_h, w_x, w_y, w_w, w_h, max_res, imgData]});
 				w2.postMessage({id: id2, data: [c_w, c_h, w_x, w_y, w_w, w_h, max_res, imgData2]});
-
             }
         
         refreshScreen();
