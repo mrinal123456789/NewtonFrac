@@ -3,64 +3,304 @@
         
     </head>
     <body style="background-color:#97bfbb">
-        <canvas id="canv" width="720px" height="540px" style="background-color:#ffffff;width:720px;height:540px;margin-top:30.0px;position:fixed;">fml</canvas>
-        <div width="200px" height = "540px" style="margin-top:30.0px;left:750px;position:fixed;"><button onclick="resetScreen()">Reset</button></div>
+        <div style="width:720px;height:540px;top:20.0px;position:fixed;background-color:#ffffff;">
+			<canvas id="canv" width="720px" height="540px" style="background-color:#ffffff;width:720px;height:540px;top:20.0px;position:fixed;">fml</canvas>
+			<canvas id="overlay" width="720px" height="540px" style="width:720px;height:540px;top:20.0px;position:fixed;z-index:2;">fml</canvas>
+		</div>
+		<div width="200px" height = "540px" style="margin-top:20.0px;left:750px;position:fixed;">
+			<button onclick="resetScreen()">Reset</button><br/>
+			<input type="radio" name="clickMode" value="zoom" checked="checked" onclick="resetClickMode(0)" id="cMode0">Zoom<br/>
+			<input type="radio" name="clickMode" value="orbit" onclick="resetClickMode(1)" id="cMode1">Orbit<br/>
+			<input type="radio" name="clickMode" value="dynamic" onclick="resetClickMode(2)" id="cMode2">Dynamic
+		<button style="display:none;" id="exitDynamicButton">Exit Dynamic</Button><br/>
+		</div>
+		<script src="GenFractal.js"></script>
 		<script>
             var canv = document.getElementById("canv");
             var c = canv.getContext("2d");
-            
-            
+            var overlay = document.getElementById("overlay")
+			var cOver = overlay.getContext("2d");
+			var eDyn = document.getElementById("exitDynamicButton");
+			
+			
             var c_w = 720;
             var c_h = 540;
-            var max_res = 30.0;
+            var max_res = 20.0;
             
             var w_x = 0.001;//Center X
             var w_y = 0.0;//Center Y
             var w_w = 2.0 * 0.8;//Half the width
             var w_h = 1.5 * 0.8;//Half the height
+			var d_x = 0;
+			var d_y = 0;
+			var d_w = 1.6;
+			var d_h = 1.2;
             var w_orig = w_w;
             var h_orig = w_h;
         
             
 			var superMode = 0;
             var mode = 0;
+			var pressed = false;
             var clickX = 0;
             var clickY = 0;
+			var dynamicC = -1;
             
-            canv.onclick = function (e)
+			function resetClickMode(button)
+			{
+				if (superMode != button)
+				{
+					if (dynamicC == -1)
+						cOver.clearRect(0,0,720,540);
+					superMode = button;
+					mode = 0;
+				}
+				if (superMode == 1)
+				{
+					cOver.lineWidth = 2;
+					cOver.strokeStyle = "#ffffff";
+					cOver.lineCap = "butt";
+				}
+			}
+			
+			eDyn.onclick = function()
+			{
+				cOver.clearRect(0,0,1000,1000);
+				dynamicC = -1;
+				eDyn.style.display = "none";
+				document.getElementById("cMode2").disabled = false;
+				refreshScreen();
+			}
+			
+            overlay.onmousedown = function (e)
             {
+				pressed = true;
+				clickAction(e);
+            }
+			
+			function clickAction(e)
+			{
+				var clickX = e.clientX - 10;
+				var clickY = e.clientY - 22;
 				if (superMode == 0)
 				{
-					if (mode == 0)
+					var scale = 1 / 2;
+					if (dynamicC == -1)
 					{
-						var scale = 1 / 2;
-						var clickX = e.clientX - 10;
-						var clickY = e.clientY - 40;
-						w_x = w_x - w_w + clickX / c_w * 2 * w_w;
-						w_y = w_y - w_h + clickY / c_h * 2 * w_h;
-						w_w *= scale;
-						w_h *= scale;
+						if (mode == 0)
+						{
+							w_x = w_x - w_w + clickX / c_w * 2 * w_w;
+							w_y = w_y - w_h + clickY / c_h * 2 * w_h;
+							w_w *= scale;
+							w_h *= scale;
+							
+							max_res = (-1) * Math.log(w_w) * 4 + 20.0;
+							refreshScreen();
+						}
+					}
+					else
+					{
+						d_x = d_x - d_w + clickX / c_w * 2 * d_w;
+						d_y = d_y - d_h + clickY / c_h * 2 * d_h;
+						d_w *= scale;
+						d_h *= scale;
 						
-						max_res = (-1) * Math.log(w_w) * 4 + 30.0;
-						refreshScreen();
+						max_res = (-1) * Math.log(w_w) * 4 + 20.0;
+						refreshDynamic();
 					}
 				}
 				else if (superMode == 1)
 				{
-					
+					cOver.clearRect(0,0,1000,1000);
+					cOver.beginPath();
+					if (dynamicC == -1)
+					{
+						var realX = w_x - w_w + clickX / c_w * 2 * w_w;
+						var realY = w_y - w_h + clickY / c_h * 2 * w_h;
+						var c = new Array();
+						c.x = realX;
+						c.y = realY;
+						var p0 = new Array();
+						p0.x = 0;
+						p0.y = 0;
+						var p1 = p0;
+						let found = false;
+						let traj = new Array();
+						traj.push(p0);
+						while (!found)
+						{
+							p0 = newton(p0, c);
+							traj.push(p0);
+							if (distanceSqr(p0, p1) < 0.000005)
+								found = true;
+							else
+								p1 = p0;
+						}
+
+						for (var i = 0; i < traj.length;i++)
+						{
+							cOver.arc(toCanvasX(traj[i].x), toCanvasY(traj[i].y),2,0,2 * 3.141593);
+							if (i == 0)
+							{
+								cOver.moveTo(toCanvasX(traj[i].x), toCanvasY(traj[i].y))
+							}
+							else
+							{
+								cOver.lineTo(toCanvasX(traj[i].x), toCanvasY(traj[i].y))
+							}
+						}
+						cOver.stroke();
+					}
+					else
+					{
+						var realX = d_x - d_w + clickX / c_w * 2 * d_w;
+						var realY = d_y - d_h + clickY / c_h * 2 * d_h;
+						var c = new Array();
+						var p0 = new Array();
+						p0.x = realX;
+						p0.y = realY;
+						var p1 = p0;
+						let found = false;
+						let traj = new Array();
+						traj.push(p0);
+						while (!found)
+						{
+							p0 = newton(p0, dynamicC);
+							traj.push(p0);
+							if (distanceSqr(p0, p1) < 0.000005)
+								found = true;
+							else
+								p1 = p0;
+						}
+
+						for (var i = 0; i < traj.length;i++)
+						{
+							cOver.arc(toCanvasX(traj[i].x), toCanvasY(traj[i].y),2,0,2 * 3.141593);
+							if (i == 0)
+							{
+								cOver.moveTo(toCanvasX(traj[i].x), toCanvasY(traj[i].y))
+							}
+							else
+							{
+								cOver.lineTo(toCanvasX(traj[i].x), toCanvasY(traj[i].y))
+							}
+						}
+						cOver.stroke();
+					}
+				}
+				else if (superMode == 2 && mode == 0)
+				{
+					dynamicC = new Array();
+					var realX = w_x - w_w + clickX / c_w * 2 * w_w;
+					var realY = w_y - w_h + clickY / c_h * 2 * w_h;
+					dynamicC.x = realX;
+					dynamicC.y = realY;
+					d_w = 1.6;
+					d_h = 1.2;
+					d_x = 0;
+					d_y = 0;
+					refreshDynamic();
+					eDyn.style.display = "inline";
+					document.getElementById("cMode0").checked = true;
+					superMode = 0;
+					document.getElementById("cMode2").checked = false;
+					document.getElementById("cMode2").disabled = true;
+				}
+			}
+			
+			overlay.onmousemove = function(e)
+			{
+				if (pressed)
+					clickAction(e);
+			}
+			
+			overlay.onmouseup = function()
+			{
+				pressed = false;
+			}
+        
+			function resetScreen()
+            {	
+				if (dynamicC == -1)
+				{
+					w_w = w_orig;
+					w_h = h_orig;
+					w_x = 0.001;
+					w_y = 0;
+					max_res = 20.0;
+					refreshScreen();
+					if (superMode == 1)
+					{
+						cOver.clearRect(0,0,1000,1000);
+					}
+				}
+				else
+				{
+					d_w = 1.6;
+					d_h = 1.2;
+					d_x = 0;
+					d_y = 0;
+					max_res = 20.0;
+					refreshDynamic();
 				}
             }
         
-            function resetScreen()
-            {
-                w_w = w_orig;
-                w_h = h_orig;
-                w_x = 0;
-                w_y = 0;
-                max_res = 30.0;
-                refreshScreen();
-            }
-        
+			function toCanvasX(coordX)
+			{
+				if (dynamicC == -1)
+					return (coordX - w_x + w_w) * c_w / w_w / 2;
+				else
+					return (coordX - d_x + d_w) * c_w / d_w / 2;
+			}
+			
+			function toCanvasY(coordY)
+			{
+				if (dynamicC == -1)
+					return (coordY - w_y + w_h) * c_h / w_h / 2;
+				else
+					return (coordY - d_y + d_h) * c_h / d_h / 2;
+			}
+		
+			function refreshDynamic()
+			{
+               	w = new Worker("GenFractal.js")
+				w2 = new Worker("GenFractal.js")
+				var id = 30;
+				var id2 = 40;
+           		mode = -1;
+				var imgData = (c.getImageData(0,0,c_w / 2, c_h));
+				var imgData2 = (c.getImageData(c_w / 2, -1, c_w / 2, c_h + 1));
+				w.onmessage = function(d)
+				{
+					if (d.data.id == id)
+					{
+						//alert("done");
+						c.putImageData(d.data.data, 0, 0);
+						mode = 0;
+					}
+					else
+					{
+						c.putImageData(d.data.data, 0, 0);
+					}
+				}
+				w2.onmessage = function(d)
+				{
+					if (d.data.id == id2)
+					{
+						//alert("done");
+						c.putImageData(d.data.data, c_w / 2, -1);
+						mode = 0;
+					}
+					else
+					{
+						c.putImageData(d.data.data, c_w / 2, -1);
+					}
+				}
+				
+				w.postMessage({id: id, data: [c_w, c_h, d_x, d_y, d_w, d_h, max_res, imgData, dynamicC]});
+				w2.postMessage({id: id2, data: [c_w, c_h, d_x, d_y, d_w, d_h, max_res, imgData2, dynamicC]});
+			}
+		
             function refreshScreen()
             {
                	w = new Worker("GenFractal.js")
