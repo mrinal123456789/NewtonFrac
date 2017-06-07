@@ -131,7 +131,7 @@
 						{
 							p0 = newton(p0, c);
 							traj.push(p0);
-							if (distanceSqr(p0, p1) < 0.000005)
+							if (distanceSqr(p0, p1) < 0.000005 || traj.length > 25)
 								found = true;
 							else
 								p1 = p0;
@@ -167,7 +167,7 @@
 						{
 							p0 = newton(p0, dynamicC);
 							traj.push(p0);
-							if (distanceSqr(p0, p1) < 0.000005)
+							if (distanceSqr(p0, p1) < 0.000005 || traj.length > 25)
 								found = true;
 							else
 								p1 = p0;
